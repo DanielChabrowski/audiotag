@@ -1,0 +1,6 @@
+[Bb]uild/
+compile_commands.json
+*.user
+.*/
+/CMakeSettings.json
+dist/

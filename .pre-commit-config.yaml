@@ -1,0 +1,35 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-case-conflict
+    -   id: check-byte-order-marker
+    -   id: check-yaml
+    -   id: check-added-large-files
+    -   id: check-executables-have-shebangs
+    -   id: check-merge-conflict
+    -   id: mixed-line-ending
+        args: [ --fix, lf ]
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v14.0.6
+    hooks:
+    -   id: clang-format
+-   repo: https://github.com/BlankSpruce/gersemi
+    rev: 0.8.2
+    hooks:
+    -   id: gersemi
+-   repo: local
+    hooks:
+    -   id: forbid-tabs
+        name: forbid tabs
+        language: pygrep
+        entry: '\t'
+        types: [text]
+    -   id: ensure-pragma-once
+        name: ensure pragma once
+        entry: '^#pragma once$'
+        language: pygrep
+        files: \.(h|hpp)$
+        args: [--multiline, --negate]
