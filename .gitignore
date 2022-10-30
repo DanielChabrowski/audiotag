@@ -1,4 +1,4 @@
-[Bb]uild/
+[Bb]uild*/
 compile_commands.json
 *.user
 .*/
