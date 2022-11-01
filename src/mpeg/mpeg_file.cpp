@@ -341,12 +341,15 @@ std::optional<ID3v1::Tags> MpegFile::read_id3v1(FileReader &reader)
     }
 
     const auto tags = std::span(buffer);
+    const auto is_id3v11 = (tags[125] == std::byte{ 0 } && tags[126] != std::byte{ 0 });
+    const auto comment_size = is_id3v11 ? 28 : 30;
+
     return ID3v1::Tags{
         .title = from_latin1_to_utf8(tags.subspan(3, 30)).data(),
         .artist = from_latin1_to_utf8(tags.subspan(33, 30)).data(),
         .album = from_latin1_to_utf8(tags.subspan(63, 30)).data(),
         .year = from_latin1_to_utf8(tags.subspan(93, 4)).data(),
-        .comment = from_latin1_to_utf8(tags.subspan(97, 28)).data(),
+        .comment = from_latin1_to_utf8(tags.subspan(97, comment_size)).data(),
         .track = std::to_integer<std::uint8_t>(tags[126]),
         .genre = std::to_integer<std::uint8_t>(tags[127]),
     };
