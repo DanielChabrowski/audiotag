@@ -18,11 +18,9 @@ target_compile_definitions(
     PRIVATE TEST_DATA_DIR="${CMAKE_CURRENT_LIST_DIR}/test_data"
 )
 
-add_test(NAME UT COMMAND unit_tests -ni)
-
 add_custom_target(
     run_tests
-    COMMAND ${CMAKE_CTEST_COMMAND} . -V -C $<CONFIG>
+    COMMAND unit_tests
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DEPENDS unit_tests
 )
