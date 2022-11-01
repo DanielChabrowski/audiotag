@@ -42,8 +42,18 @@ TEST_CASE("MpegFileWithID3v1Tags")
     FileReader reader{ TEST_DATA_DIR "/id3v1_only.mp3" };
     MpegFile mpeg{ reader };
 
-    REQUIRE_FALSE(mpeg.id3v1());
     REQUIRE_FALSE(mpeg.id3v2());
+
+    const auto tags = mpeg.id3v1();
+    REQUIRE(tags);
+
+    CHECK(tags->title == "Sample title");
+    CHECK(tags->artist == "Sample artist");
+    CHECK(tags->album == "Sample album");
+    CHECK(tags->year == "");
+    CHECK(tags->comment == "");
+    CHECK(tags->track == 3);
+    // REQUIRE(tags->genre == ??);
 }
 
 TEST_CASE("MpegFileWithID3v1Andv2Tags")
@@ -51,7 +61,7 @@ TEST_CASE("MpegFileWithID3v1Andv2Tags")
     FileReader reader{ TEST_DATA_DIR "/id3v2_id3v1.mp3" };
     MpegFile mpeg{ reader };
 
-    REQUIRE_FALSE(mpeg.id3v1());
+    REQUIRE(mpeg.id3v1());
     REQUIRE(mpeg.id3v2());
 }
 
@@ -60,18 +70,13 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
     FileReader reader{ TEST_DATA_DIR "/id3v2_only.mp3" };
     MpegFile mpeg{ reader };
 
-    const auto v2_tags = mpeg.id3v2();
-    REQUIRE(v2_tags);
+    const auto tags = mpeg.id3v2();
+    REQUIRE(tags);
 
-    std::cout << "ARTIST " << v2_tags->getStringValue(Tag::ARIST) << std::endl;
-    std::cout << "TITLE " << v2_tags->getStringValue(Tag::TITLE) << std::endl;
-    std::cout << "ALBUM " << v2_tags->getStringValue(Tag::ALBUM) << std::endl;
-    std::cout << "TRACKNUMBER " << v2_tags->getStringValue(Tag::TRACKNUMBER) << std::endl;
-    std::cout << "DISCNUMBER " << v2_tags->getStringValue(Tag::DISCNUMBER) << std::endl;
-
-    const auto frames = v2_tags->getFrames();
-    for(const auto &frame : frames)
-    {
-        std::cout << "Frame " << frame.id << " size: " << frame.data.size() << std::endl;
-    }
+    CHECK(tags->getFrames().size() == 5);
+    CHECK(tags->getStringValue(Tag::TITLE) == "Sample title");
+    CHECK(tags->getStringValue(Tag::ARIST) == "画家");
+    CHECK(tags->getStringValue(Tag::ALBUM) == "Sample album in UTF16-BE");
+    CHECK(tags->getStringValue(Tag::TRACKNUMBER) == "3");
+    CHECK(tags->getStringValue(Tag::DISCNUMBER) == "");
 }

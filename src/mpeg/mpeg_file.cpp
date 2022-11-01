@@ -216,6 +216,22 @@ std::string Tags::getStringValue(Tag tag) const
 
 MpegFile::MpegFile(audiotag::FileReader &reader)
 {
+    id3v2_tags = read_id3v2(reader);
+    id3v1_tags = read_id3v1(reader);
+}
+
+const std::optional<ID3v1::Tags> &MpegFile::id3v1()
+{
+    return id3v1_tags;
+}
+
+const std::optional<ID3v2::Tags> &MpegFile::id3v2()
+{
+    return id3v2_tags;
+}
+
+std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
+{
     constexpr std::size_t header_size{ 10 };
     std::byte header[header_size]{};
 
@@ -226,7 +242,7 @@ MpegFile::MpegFile(audiotag::FileReader &reader)
     const auto header_tag = header_span.subspan(0, 3);
     if(std::memcmp(ID3v2::Identifier, header_tag.data(), header_tag.size()))
     {
-        return;
+        return std::nullopt;
     }
 
     const auto version_span = header_span.subspan(3, 2);
@@ -297,16 +313,42 @@ MpegFile::MpegFile(audiotag::FileReader &reader)
         });
     }
 
-    id3v2_tags = ID3v2::Tags(ID3v2::Header{}, std::move(tag_frames));
+    return ID3v2::Tags(
+        ID3v2::Header{
+            .version_major = version_major,
+            .version_revision = version_revision,
+        },
+        std::move(tag_frames));
 }
 
-const std::optional<ID3v1::Tags> &MpegFile::id3v1()
+std::optional<ID3v1::Tags> MpegFile::read_id3v1(FileReader &reader)
 {
-    return id3v1_tags;
-}
+    constexpr auto id3v1_tag_size = 128u;
 
-const std::optional<ID3v2::Tags> &MpegFile::id3v2()
-{
-    return id3v2_tags;
+    std::vector<std::byte> buffer(id3v1_tag_size);
+
+    reader.seek(reader.length() - id3v1_tag_size);
+
+    const auto bytes_read = reader.read(buffer);
+    if(bytes_read != id3v1_tag_size)
+    {
+        return std::nullopt;
+    }
+
+    if(std::memcmp(ID3v1::Identifier, buffer.data(), sizeof(ID3v1::Identifier)))
+    {
+        return std::nullopt;
+    }
+
+    const auto tags = std::span(buffer);
+    return ID3v1::Tags{
+        .title = from_latin1_to_utf8(tags.subspan(3, 30)).data(),
+        .artist = from_latin1_to_utf8(tags.subspan(33, 30)).data(),
+        .album = from_latin1_to_utf8(tags.subspan(63, 30)).data(),
+        .year = from_latin1_to_utf8(tags.subspan(93, 4)).data(),
+        .comment = from_latin1_to_utf8(tags.subspan(97, 28)).data(),
+        .track = std::to_integer<std::uint8_t>(tags[126]),
+        .genre = std::to_integer<std::uint8_t>(tags[127]),
+    };
 }
 } // namespace audiotag

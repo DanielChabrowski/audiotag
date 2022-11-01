@@ -62,4 +62,9 @@ std::size_t FileReader::read(std::span<std::byte> buffer)
 {
     return std::fread(buffer.data(), sizeof(std::byte), buffer.size(), impl->file);
 }
+
+bool FileReader::seek(long offset)
+{
+    return std::fseek(impl->file, offset, SEEK_SET);
+}
 } // namespace audiotag

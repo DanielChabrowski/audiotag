@@ -17,6 +17,8 @@ public:
 
     std::size_t read(std::span<std::byte> buffer);
 
+    bool seek(long offset);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl;
