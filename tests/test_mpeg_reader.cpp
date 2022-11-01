@@ -1,23 +1,11 @@
 #include <audiotag/file_reader.hpp>
 #include <audiotag/mpeg/mpeg_file.hpp>
 
-#include <iostream>
-#include <ostream>
-
 //
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 using namespace audiotag;
-
-inline std::ostream &operator<<(std::ostream &os, const std::array<std::byte, 4> &data)
-{
-    for(const auto byte : data)
-    {
-        os << std::to_integer<char>(byte);
-    }
-    return os;
-}
 
 TEST_CASE("MpegFileWithoutTags")
 {

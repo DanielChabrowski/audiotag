@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 namespace audiotag
@@ -27,7 +26,6 @@ struct FileReader::Impl
 FileReader::FileReader(std::string_view filename)
 : impl(std::make_unique<Impl>())
 {
-    std::cout << "opening " << filename << std::endl;
     impl->file = std::fopen(filename.data(), "rb");
     if(!impl->file)
     {
