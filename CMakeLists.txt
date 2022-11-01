@@ -31,16 +31,11 @@ add_compile_options(
     -Wnull-dereference
     -Wzero-as-null-pointer-constant
     -Wno-unused-variable
+    -Wno-unused-parameter
 )
 
-add_library(
-    audiotag
-    include/audiotag/audiotag.hpp
-    src/file_reader.cpp
-    include/audiotag/file_reader.hpp
-    src/mpeg/mpeg_file.cpp
-    include/audiotag/mpeg/mpeg_file.hpp
-)
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp include/*.hpp)
+add_library(audiotag ${SOURCE_FILES})
 
 target_link_libraries(audiotag PUBLIC utf8::cpp frozen::frozen)
 
