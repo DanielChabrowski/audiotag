@@ -297,13 +297,15 @@ std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
         const auto frame_flags = frames_span.subspan(offset + 8, 2);
         const auto frame_flags_int = to_u16_be(frame_flags);
 
+        constexpr auto frame_header_size = 10u;
+
         span_frames.emplace_back(SpanFrame{
             .id = { frame_id[0], frame_id[1], frame_id[2], frame_id[3] },
             .flags = frame_flags_int,
-            .data_span = frames_span.subspan(offset + 10, frame_size),
+            .data_span = frames_span.subspan(offset + frame_header_size, frame_size),
         });
 
-        offset += frame_size + 10;
+        offset += frame_size + frame_header_size;
     }
 
     std::vector<ID3v2::TagFrame> tag_frames;
