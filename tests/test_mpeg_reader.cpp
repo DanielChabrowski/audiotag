@@ -1,3 +1,5 @@
+#include "vector_reader.hpp"
+
 #include <audiotag/file_reader.hpp>
 #include <audiotag/mpeg/mpeg_file.hpp>
 
@@ -67,4 +69,15 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
     CHECK(tags->getStringValue(Tag::ALBUM) == "Sample album in UTF16-BE");
     CHECK(tags->getStringValue(Tag::TRACKNUMBER) == "3");
     CHECK(tags->getStringValue(Tag::DISCNUMBER) == "");
+}
+
+TEST_CASE("MpegFileWithInsufficientID3v1TagData")
+{
+    VectorReader::DataVec data{ 'T', 'A', 'G', 'N', 'O', 'D', 'A', 'T', 'A' };
+
+    auto reader = VectorReader{ data };
+    MpegFile file{ reader };
+
+    REQUIRE_FALSE(file.id3v1());
+    REQUIRE_FALSE(file.id3v2());
 }
