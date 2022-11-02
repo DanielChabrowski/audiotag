@@ -8,7 +8,7 @@
 
 namespace audiotag
 {
-class FileReader;
+class Reader;
 
 enum class Tag
 {
@@ -95,14 +95,14 @@ private:
 class MpegFile
 {
 public:
-    MpegFile(FileReader &reader);
+    MpegFile(Reader &reader);
 
     const std::optional<ID3v1::Tags> &id3v1();
     const std::optional<ID3v2::Tags> &id3v2();
 
 private:
-    std::optional<ID3v2::Tags> read_id3v2(FileReader &reader);
-    std::optional<ID3v1::Tags> read_id3v1(FileReader &reader);
+    std::optional<ID3v2::Tags> read_id3v2(Reader &reader);
+    std::optional<ID3v1::Tags> read_id3v1(Reader &reader);
 
 private:
     std::optional<ID3v1::Tags> id3v1_tags;

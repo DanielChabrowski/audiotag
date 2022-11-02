@@ -1,6 +1,6 @@
 #include <audiotag/byte_swap.hpp>
-#include <audiotag/file_reader.hpp>
 #include <audiotag/mpeg/mpeg_file.hpp>
+#include <audiotag/reader.hpp>
 #include <frozen/map.h>
 #include <utf8/cpp17.h>
 
@@ -213,7 +213,7 @@ std::string Tags::getStringValue(Tag tag) const
 }
 } // namespace ID3v2
 
-MpegFile::MpegFile(audiotag::FileReader &reader)
+MpegFile::MpegFile(audiotag::Reader &reader)
 {
     id3v2_tags = read_id3v2(reader);
     id3v1_tags = read_id3v1(reader);
@@ -229,7 +229,7 @@ const std::optional<ID3v2::Tags> &MpegFile::id3v2()
     return id3v2_tags;
 }
 
-std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
+std::optional<ID3v2::Tags> MpegFile::read_id3v2(Reader &reader)
 {
     constexpr std::size_t header_size{ 10 };
     std::byte header[header_size]{};
@@ -331,7 +331,7 @@ std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
         std::move(tag_frames));
 }
 
-std::optional<ID3v1::Tags> MpegFile::read_id3v1(FileReader &reader)
+std::optional<ID3v1::Tags> MpegFile::read_id3v1(Reader &reader)
 {
     constexpr auto id3v1_tag_size = 128u;
 
