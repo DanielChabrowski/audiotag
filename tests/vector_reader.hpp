@@ -11,7 +11,7 @@ namespace audiotag
 class VectorReader : public Reader
 {
 public:
-    using DataVec = std::vector<unsigned char>;
+    using DataVec = std::vector<std::byte>;
 
     explicit VectorReader(const DataVec &data)
     : data{ data }

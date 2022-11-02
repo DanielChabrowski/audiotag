@@ -1,10 +1,8 @@
+#include "data_builder.hpp"
 #include "vector_reader.hpp"
 
 #include <audiotag/file_reader.hpp>
 #include <audiotag/mpeg/mpeg_file.hpp>
-
-//
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 using namespace audiotag;
@@ -73,11 +71,66 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
 
 TEST_CASE("MpegFileWithInsufficientID3v1TagData")
 {
-    VectorReader::DataVec data{ 'T', 'A', 'G', 'N', 'O', 'D', 'A', 'T', 'A' };
+    auto builder = DataBuilder{};
+    builder.write("TAG");
+    builder.write(std::byte{ 0 }, 10);
+
+    const auto data = builder.build();
 
     auto reader = VectorReader{ data };
     MpegFile file{ reader };
 
     REQUIRE_FALSE(file.id3v1());
     REQUIRE_FALSE(file.id3v2());
+}
+
+TEST_CASE("MpegFileWithID3v10Comment")
+{
+    constexpr auto genre{ 25 };
+
+    auto builder = DataBuilder{};
+    builder.write("TAG");
+    builder.write(std::byte{ 0 }, 94);
+    builder.write(std::byte{ 0x61 }, 30);
+    builder.write(std::byte{ genre }, 1);
+
+    const auto data = builder.build();
+
+    auto reader = VectorReader{ data };
+    MpegFile file{ reader };
+
+    CHECK_FALSE(file.id3v2());
+
+    const auto tag = file.id3v1();
+    REQUIRE(tag);
+    CHECK(tag->comment == std::string(30, 'a'));
+    CHECK(tag->track == 0);
+    CHECK(tag->genre == genre);
+}
+
+TEST_CASE("MpegFileWithID3v11Comment")
+{
+    constexpr auto track{ 20 };
+    constexpr auto genre{ 25 };
+
+    auto builder = DataBuilder{};
+    builder.write("TAG");
+    builder.write(std::byte{ 0 }, 94);
+    builder.write(std::byte{ 0x61 }, 28); // comment
+    builder.write(std::byte{ 0 }, 1); // null terminator
+    builder.write(std::byte{ track }, 1);
+    builder.write(std::byte{ genre }, 1);
+
+    const auto data = builder.build();
+
+    auto reader = VectorReader{ data };
+    MpegFile file{ reader };
+
+    CHECK_FALSE(file.id3v2());
+
+    const auto tag = file.id3v1();
+    REQUIRE(tag);
+    CHECK(tag->comment == std::string(28, 'a'));
+    CHECK(tag->track == track);
+    CHECK(tag->genre == genre);
 }

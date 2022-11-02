@@ -1,6 +1,8 @@
 cpmaddpackage("gh:doctest/doctest@2.4.9")
 
-add_executable(unit_tests test_mpeg_reader.cpp)
+file(GLOB_RECURSE TEST_FILES CONFIGURE_DEPENDS *.cpp *.hpp)
+
+add_executable(unit_tests ${TEST_FILES})
 target_link_libraries(unit_tests PRIVATE doctest audiotag)
 
 if(BUILD_STATIC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
