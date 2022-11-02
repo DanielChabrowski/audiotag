@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <bit>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -236,7 +235,10 @@ std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
     std::byte header[header_size]{};
 
     const std::size_t header_bytes_read = reader.read(header);
-    assert(header_bytes_read == header_size);
+    if(header_bytes_read != header_size)
+    {
+        return std::nullopt;
+    }
 
     auto header_span = std::span(header);
     const auto header_tag = header_span.subspan(0, 3);
@@ -256,12 +258,18 @@ std::optional<ID3v2::Tags> MpegFile::read_id3v2(FileReader &reader)
     const auto synch_size = to_synch_uint32_t(size);
 
     // make sure synch_size is smaller than file size
-    assert(synch_size < reader.length());
+    if(synch_size >= reader.length())
+    {
+        return std::nullopt;
+    }
 
     std::vector<std::byte> frames(synch_size);
 
     const std::size_t frames_bytes_read = reader.read(frames);
-    assert(frames_bytes_read == synch_size);
+    if(frames_bytes_read != synch_size)
+    {
+        return std::nullopt;
+    }
 
     const auto frames_span = std::span(frames);
 
