@@ -27,7 +27,32 @@ TEST_CASE("MpegFileWithApeTags")
 
 TEST_CASE("MpegFileWithID3v1Tags")
 {
-    FileReader reader{ TEST_DATA_DIR "/id3v1_only.mp3" };
+    constexpr auto title = "Sample title";
+    constexpr auto artist = "Sample artist";
+    constexpr auto album = "Sample album";
+    constexpr auto year = "2022";
+    constexpr auto comment = "Sample comment";
+    constexpr auto track{ 255 };
+    constexpr auto genre{ 250 };
+
+    auto builder = DataBuilder{};
+    builder.write(std::byte{ 0 }, 500);
+    builder.write("TAG");
+    builder.write(title);
+    builder.write(std::byte{ 0 }, 30 - std::strlen(title));
+    builder.write(artist);
+    builder.write(std::byte{ 0 }, 30 - std::strlen(artist));
+    builder.write(album);
+    builder.write(std::byte{ 0 }, 30 - std::strlen(album));
+    builder.write(year);
+    builder.write(comment);
+    builder.write(std::byte{ 0 }, 29 - std::strlen(comment));
+    builder.write(std::byte{ track }, 1);
+    builder.write(std::byte{ genre }, 1);
+
+    const auto data = builder.build();
+
+    auto reader = VectorReader{ data };
     MpegFile mpeg{ reader };
 
     REQUIRE_FALSE(mpeg.id3v2());
@@ -35,13 +60,13 @@ TEST_CASE("MpegFileWithID3v1Tags")
     const auto tags = mpeg.id3v1();
     REQUIRE(tags);
 
-    CHECK(tags->title == "Sample title");
-    CHECK(tags->artist == "Sample artist");
-    CHECK(tags->album == "Sample album");
-    CHECK(tags->year == "");
-    CHECK(tags->comment == "");
-    CHECK(tags->track == 3);
-    // REQUIRE(tags->genre == ??);
+    CHECK(tags->title == title);
+    CHECK(tags->artist == artist);
+    CHECK(tags->album == album);
+    CHECK(tags->year == year);
+    CHECK(tags->comment == comment);
+    CHECK(tags->track == track);
+    CHECK(tags->genre == genre);
 }
 
 TEST_CASE("MpegFileWithID3v1Andv2Tags")
@@ -57,6 +82,8 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
 {
     FileReader reader{ TEST_DATA_DIR "/id3v2_only.mp3" };
     MpegFile mpeg{ reader };
+
+    CHECK_FALSE(mpeg.id3v1());
 
     const auto tags = mpeg.id3v2();
     REQUIRE(tags);
@@ -116,7 +143,7 @@ TEST_CASE("MpegFileWithID3v11Comment")
     auto builder = DataBuilder{};
     builder.write("TAG");
     builder.write(std::byte{ 0 }, 94);
-    builder.write(std::byte{ 0x61 }, 28); // comment
+    builder.write(std::byte{ 'a' }, 28); // comment
     builder.write(std::byte{ 0 }, 1); // null terminator
     builder.write(std::byte{ track }, 1);
     builder.write(std::byte{ genre }, 1);
