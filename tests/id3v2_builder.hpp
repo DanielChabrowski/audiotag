@@ -8,15 +8,15 @@
 
 namespace audiotag
 {
-struct FrameHeader
-{
-    const char *frame_id;
-    std::uint16_t flags;
-};
-
 class ID3v2Builder : private DataBuilder
 {
 public:
+    struct FrameHeader
+    {
+        const char *frame_id;
+        std::uint16_t flags;
+    };
+
     void add_text_information_frame(FrameHeader header, std::string_view text)
     {
         write_frame_header(header, text.size() + 1);
