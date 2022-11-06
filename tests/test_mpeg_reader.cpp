@@ -1,4 +1,5 @@
 #include "data_builder.hpp"
+#include "id3v1_builder.hpp"
 #include "id3v2_builder.hpp"
 #include "vector_reader.hpp"
 
@@ -40,14 +41,7 @@ TEST_CASE("MpegFileWithID3v1Tags")
 
     auto builder = DataBuilder{};
     builder.write(std::byte{ 0 }, 500);
-    builder.write(ID3v1::Identifier);
-    builder.write_padded(expected.title, 30);
-    builder.write_padded(expected.artist, 30);
-    builder.write_padded(expected.album, 30);
-    builder.write_padded(expected.year, 4);
-    builder.write_padded(expected.comment, 29);
-    builder.write(std::byte{ expected.track }, 1);
-    builder.write(std::byte{ expected.genre }, 1);
+    builder.write(ID3v1Builder::build(expected));
 
     const auto data = builder.build();
 
