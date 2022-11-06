@@ -122,7 +122,7 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
 TEST_CASE("MpegFileWithInsufficientID3v1TagData")
 {
     auto builder = DataBuilder{};
-    builder.write("TAG");
+    builder.write(ID3v1::Identifier);
     builder.write(std::byte{ 0 }, 10);
 
     const auto data = builder.build();
@@ -139,9 +139,9 @@ TEST_CASE("MpegFileWithID3v10Comment")
     constexpr auto genre{ 25 };
 
     auto builder = DataBuilder{};
-    builder.write("TAG");
+    builder.write(ID3v1::Identifier);
     builder.write(std::byte{ 0 }, 94);
-    builder.write(std::byte{ 0x61 }, 30);
+    builder.write(std::byte{ 'a' }, 30);
     builder.write(std::byte{ genre }, 1);
 
     const auto data = builder.build();
@@ -164,7 +164,7 @@ TEST_CASE("MpegFileWithID3v11Comment")
     constexpr auto genre{ 25 };
 
     auto builder = DataBuilder{};
-    builder.write("TAG");
+    builder.write(ID3v1::Identifier);
     builder.write(std::byte{ 0 }, 94);
     builder.write(std::byte{ 'a' }, 28); // comment
     builder.write(std::byte{ 0 }, 1); // null terminator
