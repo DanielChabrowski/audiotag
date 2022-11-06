@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <span>
@@ -79,6 +80,14 @@ public:
         write(std::byte(value >> 14 & 0x7F), 1);
         write(std::byte(value >> 7 & 0x7F), 1);
         write(std::byte(value & 0x7F), 1);
+    }
+
+    void write_padded(const std::string_view data, std::uint32_t size)
+    {
+        assert(data.size() <= size);
+
+        write(data);
+        write(std::byte{ 0 }, size - data.size());
     }
 
     [[nodiscard]] std::vector<std::byte> build()

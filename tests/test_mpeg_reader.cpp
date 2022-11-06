@@ -28,28 +28,26 @@ TEST_CASE("MpegFileWithApeTags")
 
 TEST_CASE("MpegFileWithID3v1Tags")
 {
-    constexpr auto title = "Sample title";
-    constexpr auto artist = "Sample artist";
-    constexpr auto album = "Sample album";
-    constexpr auto year = "2022";
-    constexpr auto comment = "Sample comment";
-    constexpr auto track{ 255 };
-    constexpr auto genre{ 250 };
+    const ID3v1::Tags expected{
+        .title = "Sample title",
+        .artist = "Sample artist",
+        .album = "Sample album",
+        .year = "2022",
+        .comment = "Sample comment",
+        .track = 255,
+        .genre = 250,
+    };
 
     auto builder = DataBuilder{};
     builder.write(std::byte{ 0 }, 500);
-    builder.write("TAG");
-    builder.write(title);
-    builder.write(std::byte{ 0 }, 30 - std::strlen(title));
-    builder.write(artist);
-    builder.write(std::byte{ 0 }, 30 - std::strlen(artist));
-    builder.write(album);
-    builder.write(std::byte{ 0 }, 30 - std::strlen(album));
-    builder.write(year);
-    builder.write(comment);
-    builder.write(std::byte{ 0 }, 29 - std::strlen(comment));
-    builder.write(std::byte{ track }, 1);
-    builder.write(std::byte{ genre }, 1);
+    builder.write(ID3v1::Identifier);
+    builder.write_padded(expected.title, 30);
+    builder.write_padded(expected.artist, 30);
+    builder.write_padded(expected.album, 30);
+    builder.write_padded(expected.year, 4);
+    builder.write_padded(expected.comment, 29);
+    builder.write(std::byte{ expected.track }, 1);
+    builder.write(std::byte{ expected.genre }, 1);
 
     const auto data = builder.build();
 
@@ -61,13 +59,13 @@ TEST_CASE("MpegFileWithID3v1Tags")
     const auto tags = mpeg.id3v1();
     REQUIRE(tags);
 
-    CHECK(tags->title == title);
-    CHECK(tags->artist == artist);
-    CHECK(tags->album == album);
-    CHECK(tags->year == year);
-    CHECK(tags->comment == comment);
-    CHECK(tags->track == track);
-    CHECK(tags->genre == genre);
+    CHECK(tags->title == expected.title);
+    CHECK(tags->artist == expected.artist);
+    CHECK(tags->album == expected.album);
+    CHECK(tags->year == expected.year);
+    CHECK(tags->comment == expected.comment);
+    CHECK(tags->track == expected.track);
+    CHECK(tags->genre == expected.genre);
 }
 
 TEST_CASE("MpegFileWithID3v1Andv2Tags")
