@@ -86,9 +86,9 @@ TEST_CASE("MpegFileWithID3v2TagsOnly")
 
     auto id3v2_builder = ID3v2Builder{};
     id3v2_builder.add_text_information_frame({ "TIT2", 0 }, "Sample title");
-    id3v2_builder.add_text_information_frame({ "TPE1", 0 }, u"画家", 1, std::endian::big);
-    id3v2_builder.add_text_information_frame({ "TALB", 0 }, u"アルバム", 2, std::endian::big);
-    id3v2_builder.add_text_information_frame({ "TRCK", 0 }, u"5", 1, std::endian::little);
+    id3v2_builder.add_text_information_frame({ "TPE1", 0 }, u"画家", Encoding::UTF16, std::endian::big);
+    id3v2_builder.add_text_information_frame({ "TALB", 0 }, u"アルバム", Encoding::UTF16_BE, std::endian::big);
+    id3v2_builder.add_text_information_frame({ "TRCK", 0 }, u"5", Encoding::UTF16, std::endian::little);
 
     auto id3v2_frames = id3v2_builder.build();
     builder.write_synch_safe(id3v2_frames.size());
