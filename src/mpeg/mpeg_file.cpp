@@ -22,10 +22,16 @@ constexpr std::uint16_t to_u16_be(const std::span<const std::byte> data)
     return to_u16_be(std::to_integer<std::uint16_t>(data[0]), std::to_integer<std::uint16_t>(data[1]));
 }
 
-constexpr std::uint16_t to_u16_native(const std::span<const std::byte> data)
+constexpr std::uint16_t to_u16(const std::span<const std::byte> data)
 {
-    const auto u16 = to_u16_be(data);
-    return std::endian::native == std::endian::little ? audiotag::byteswap(u16) : u16;
+    union
+    {
+        std::uint16_t value;
+        std::uint8_t bytes[2];
+    } val;
+    val.bytes[0] = std::to_integer<std::uint8_t>(data[0]);
+    val.bytes[1] = std::to_integer<std::uint8_t>(data[1]);
+    return val.value;
 }
 
 constexpr std::uint32_t to_u32_be(const std::span<const std::byte> data)
@@ -56,15 +62,13 @@ std::string from_latin1_to_utf8(const std::span<const std::byte> data)
     return out;
 }
 
-std::endian from_bom_to_endian(const std::span<const std::byte> bom_data)
+std::endian from_bom_to_endian(std::byte bom_0, std::byte bom_1)
 {
-    const auto bom = to_u16_native(bom_data);
-
-    if(bom == 0xFFFE)
+    if(bom_0 == std::byte{ 0xFF } && bom_1 == std::byte{ 0xFE })
     {
         return std::endian::little;
     }
-    else if(bom == 0xFEFF)
+    else if(bom_0 == std::byte{ 0xFE } && bom_1 == std::byte{ 0xFF })
     {
         return std::endian::big;
     }
@@ -72,26 +76,16 @@ std::endian from_bom_to_endian(const std::span<const std::byte> bom_data)
     throw std::runtime_error("Invalid BOM");
 }
 
-std::u16string from_bytes_to_utf16(const std::span<const std::byte> data)
+template <bool byteswap> std::u16string from_bytes_to_utf16(const std::span<const std::byte> data)
 {
     std::u16string out;
-    out.reserve(data.size() - 2);
+    out.reserve(data.size() / 2);
 
-    if(data.size() < 2)
+    for(std::size_t i = 0; i < data.size(); i += 2)
     {
-        // Invalid string
-        return out;
-    }
+        std::uint16_t u16_char = to_u16(data.subspan(i, 2));
 
-    const auto endian = from_bom_to_endian(data.subspan(0, 2));
-    const auto string_data = data.subspan(2);
-
-    for(std::size_t i = 0; i < string_data.size(); i += 2)
-    {
-        std::uint16_t u16_char = to_u16_be(std::to_integer<std::uint16_t>(string_data[i]),
-            std::to_integer<std::uint16_t>(string_data[i + 1]));
-
-        if(endian != std::endian::native)
+        if constexpr(byteswap)
         {
             u16_char = audiotag::byteswap(u16_char);
         }
@@ -100,6 +94,31 @@ std::u16string from_bytes_to_utf16(const std::span<const std::byte> data)
     }
 
     return out;
+}
+
+std::u16string from_bytes_to_utf16(const std::span<const std::byte> data, std::endian endianness)
+{
+    if(endianness != std::endian::native)
+    {
+        return from_bytes_to_utf16<true>(data);
+    }
+    else
+    {
+        return from_bytes_to_utf16<false>(data);
+    }
+}
+
+std::u16string from_bytes_to_utf16(const std::span<const std::byte> data)
+{
+    if(data.size() < 2)
+    {
+        // Invalid string
+        return u"";
+    }
+
+    const auto endianness = from_bom_to_endian(data[0], data[1]);
+    const auto string_data = data.subspan(2);
+    return from_bytes_to_utf16(string_data, endianness);
 }
 
 constexpr std::uint32_t to_synch_uint32_t(std::span<std::byte> data)
@@ -132,14 +151,6 @@ const std::vector<TagFrame> &Tags::getFrames() const
 {
     return frames;
 }
-
-struct elsa
-{
-    constexpr std::size_t operator()(const Tag &value, std::size_t) const
-    {
-        return static_cast<std::size_t>(value);
-    }
-};
 
 static constinit frozen::map<Tag, std::array<std::byte, 4>, 5> tag_mapping = {
     {
@@ -192,7 +203,6 @@ static constinit frozen::map<Tag, std::array<std::byte, 4>, 5> tag_mapping = {
 std::string Tags::getStringValue(Tag tag) const
 {
     const auto frame_tag = tag_mapping.at(tag);
-
     const auto frameIt = std::find_if(frames.cbegin(), frames.cend(),
         [&frame_tag](const auto &frame) { return frame.id == frame_tag; });
 
@@ -203,9 +213,14 @@ std::string Tags::getStringValue(Tag tag) const
         {
             return from_latin1_to_utf8(std::span<const std::byte>(frameIt->data).subspan(1));
         }
-        else
+        else if(encoding == 1)
         {
             return utf8::utf16to8(from_bytes_to_utf16(std::span<const std::byte>(frameIt->data).subspan(1)));
+        }
+        else if(encoding == 2)
+        {
+            return utf8::utf16to8(from_bytes_to_utf16(
+                std::span<const std::byte>(frameIt->data).subspan(1), std::endian::big));
         }
     }
 
