@@ -7,21 +7,26 @@
 
 namespace audiotag
 {
-constexpr std::uint16_t to_u16(const std::span<const std::byte> data)
-{
-    union
-    {
-        std::uint16_t value;
-        std::uint8_t bytes[2];
-    } val;
-    val.bytes[0] = std::to_integer<std::uint8_t>(data[0]);
-    val.bytes[1] = std::to_integer<std::uint8_t>(data[1]);
-    return val.value;
-}
-
 constexpr std::uint16_t to_u16_be(std::uint8_t a, std::uint8_t b)
 {
     return a << 8 | b;
+}
+
+constexpr std::uint16_t to_u16_le(std::uint8_t a, std::uint8_t b)
+{
+    return b << 8 | a;
+}
+
+constexpr std::uint16_t to_u16(const std::span<const std::byte> data)
+{
+    if constexpr(std::endian::native == std::endian::big)
+    {
+        return to_u16_be(std::to_integer<std::uint8_t>(data[0]), std::to_integer<std::uint8_t>(data[1]));
+    }
+    else
+    {
+        return to_u16_le(std::to_integer<std::uint8_t>(data[0]), std::to_integer<std::uint8_t>(data[1]));
+    }
 }
 
 constexpr std::uint16_t to_u16_be(const std::span<const std::byte> data)

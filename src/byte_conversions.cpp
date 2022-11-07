@@ -67,10 +67,8 @@ std::u16string from_bytes_to_utf16(const std::span<const std::byte> data, std::e
     {
         return from_bytes_to_utf16<true>(data);
     }
-    else
-    {
-        return from_bytes_to_utf16<false>(data);
-    }
+
+    return from_bytes_to_utf16<false>(data);
 }
 
 std::u16string from_bytes_to_utf16(const std::span<const std::byte> data)

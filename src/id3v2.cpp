@@ -21,7 +21,7 @@ const std::vector<TagFrame> &Tags::getFrames() const
     return frames;
 }
 
-static constinit frozen::map<Tag, std::array<std::byte, 4>, 5> tag_mapping = {
+static const constinit frozen::map<Tag, std::array<std::byte, 4>, 5> tag_mapping = {
     {
         Tag::TITLE,
         {

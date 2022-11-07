@@ -1,4 +1,4 @@
-Checks: 'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-osx*,-clang-analyzer-optin.osx*'
+Checks: 'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-osx*,-clang-analyzer-optin.osx*,cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,bugprone-*,cert-*,modernize-*,-modernize-use-trailing-return-type,misc-*,performance-*,readability-*,-readability-magic-numbers,-readability-else-after-return,-readability-uppercase-literal-suffix'
 WarningsAsErrors: true
 HeaderFilterRegex: '^build/.*$'
 AnalyzeTemporaryDtors: false

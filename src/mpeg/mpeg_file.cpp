@@ -38,7 +38,7 @@ std::optional<ID3v2::Tags> MpegFile::read_id3v2(Reader &reader)
 
     auto header_span = std::span(header);
     const auto header_tag = header_span.subspan(0, 3);
-    if(std::memcmp(ID3v2::Identifier, header_tag.data(), header_tag.size()))
+    if(std::memcmp(ID3v2::Identifier, header_tag.data(), header_tag.size()) != 0)
     {
         return std::nullopt;
     }
@@ -141,7 +141,7 @@ std::optional<ID3v1::Tags> MpegFile::read_id3v1(Reader &reader)
         return std::nullopt;
     }
 
-    if(std::memcmp(ID3v1::Identifier, buffer.data(), sizeof(ID3v1::Identifier)))
+    if(std::memcmp(ID3v1::Identifier, buffer.data(), sizeof(ID3v1::Identifier)) != 0)
     {
         return std::nullopt;
     }
