@@ -50,8 +50,8 @@ constexpr std::uint32_t to_synch_uint32_t(const std::span<const std::byte> data)
     return value;
 }
 
-std::string from_latin1_to_utf8(const std::span<const std::byte> data);
+std::string from_latin1_to_utf8(std::span<const std::byte> data);
 std::endian from_bom_to_endian(std::byte bom_0, std::byte bom_1);
-std::u16string from_bytes_to_utf16(const std::span<const std::byte> data, std::endian endianness);
-std::u16string from_bytes_to_utf16(const std::span<const std::byte> data);
+std::u16string from_bytes_to_utf16(std::span<const std::byte> data, std::endian endianness);
+std::u16string from_bytes_to_utf16(std::span<const std::byte> data);
 } // namespace audiotag
